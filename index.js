@@ -1,4 +1,5 @@
 //jangan lupa bikin file .gitignore dan didalamnya masukkan /node_modules agar file tersebut tidak terupload juga ke dalam github
+//ini adalah API
 //cara import di node.js
 const express = require('express')
 //nama bebas
@@ -35,14 +36,14 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
     //setiap update data, restart ulang node.inde.js
     //respond visa dalam bentuk apapun, termasuk tag html
     //note:
-    app.get('/users', (req, res)=>{
-        res.send(
-            {
-                status: 200, 
-                name: req.query
-            }
-        )
-    })
+    // app.get('/users', (req, res)=>{
+    //     res.send(
+    //         {
+    //             status: 200, 
+    //             name: req.query
+    //         }
+    //     )
+    // })
 
     // kalau ngepost data ada di body
     app.post('/users', (req, res) => {
@@ -62,6 +63,42 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
         })
     })
 
+
+     //Get data berdasarkan age
+    //findOne
+    app.get('/findone', (req,res)=>{
+        let age = parseInt(req.query.age)
+
+        //tidak usah pakai toArray()
+        db.collection('users').findOne({age : age})
+        .then((resp)=>{
+            if(resp.length == 0){
+                res.send({
+                    errMessage : "user tidak di temukan"
+                })
+            }else {
+            //hasil findOne dalam bentuk object dan hanya akan mencari satu data yang pertama kali ketemu
+            res.send(resp)
+            }
+        })
+    })
+
+    //Get data berdasarkan age
+    //find
+    app.get('/find', (req,res)=>{
+        let age = parseInt(req.query.age)
+
+        db.collection('users').find({age : age}).toArray()
+        .then((resp)=>{
+            if(resp.length == 0){
+                res.send({
+                    errMessage : "user tidak di temukan"
+                })
+            }else {
+            res.send(resp)
+            }
+        })
+    })
 })
 //running API
 //function bawaan

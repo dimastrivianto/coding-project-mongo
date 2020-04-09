@@ -1,3 +1,4 @@
+//jangan lupa bikin file .gitignore dan didalamnya masukkan /node_modules agar file tersebut tidak terupload juga ke dalam github
 //cara import di node.js
 const express = require('express')
 //nama bebas
@@ -34,21 +35,32 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
     //setiap update data, restart ulang node.inde.js
     //respond visa dalam bentuk apapun, termasuk tag html
     //note:
-    // app.get('/users', (req, res)=>{
-    //     res.send(
-    //         {
-    //             status: 200, 
-    //             name: req.query
-    //         }
-    //     )
-    // })
+    app.get('/users', (req, res)=>{
+        res.send(
+            {
+                status: 200, 
+                name: req.query
+            }
+        )
+    })
 
-    // // kalau ngepost data ada di body
-    // app.post('/users', (req, res) => {
-    //     res.send(
-    //         req.body
-    //     )
-    // })
+    // kalau ngepost data ada di body
+    app.post('/users', (req, res) => {
+        //Mengabil property name dan age dari req.body
+        //destructuring
+        const {name, age} = req.body
+
+        //cara masukkan data ke dalam database mongodb
+        //sifatnya async
+        db.collection('users').insertOne({name, age})
+        .then((resp)=>{
+            res.send({
+                // tinggal diatur mau seperti apa data ditampilkan
+                idNewUser : resp.insertedId,
+                dataUser: resp.ops[0]
+            })
+        })
+    })
 
 })
 //running API

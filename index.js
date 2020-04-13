@@ -29,6 +29,7 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
         return console.log(err)
     }
 
+    console.log('berhasil terkoneksi dengan mongodb')
     //untuk menentukan database mana yang akan digunakan
     const db = client.db(database)
 
@@ -51,6 +52,7 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
         //destructuring
         const {name, age} = req.body
 
+        //Create one user
         //cara masukkan data ke dalam database mongodb
         //sifatnya async
         db.collection('users').insertOne({name, age})
@@ -64,7 +66,7 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
     })
 
 
-     //Get data berdasarkan age
+     //Get one data berdasarkan age
     //findOne
     app.get('/findone', (req,res)=>{
         let age = parseInt(req.query.age)
@@ -83,7 +85,7 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
         })
     })
 
-    //Get data berdasarkan age
+    //Get many data berdasarkan age
     //find
     app.get('/find', (req,res)=>{
         let age = parseInt(req.query.age)
@@ -97,6 +99,22 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
             }else {
             res.send(resp)
             }
+        })
+    })
+
+    //GET ALL USERS
+    app.get('/alluser', (req,res)=>{
+        db.collection('users').find({}).toArray()
+        .then((resp)=>{
+            res.send(resp)
+        })
+    })
+    //DELETE BY AGE
+    app.delete('/user/:name', (req,res)=>{
+        let name = req.params.name
+        db.collection('users').deleteOne({ name })
+        .then((resp)=>{
+            res.send(resp)
         })
     })
 })

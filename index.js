@@ -52,17 +52,31 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
         //destructuring
         const {name, age} = req.body
 
-        //Create one user
-        //cara masukkan data ke dalam database mongodb
-        //sifatnya async
-        db.collection('users').insertOne({name, age})
-        .then((resp)=>{
+        //jadi di parseInt semua?// tanpa ini dicoba bisa
+        name = parseInt(name)
+        age = parseInt(age)
+
+        //filter apakah name == string dan age == number
+        if(isNaN(age)== true || isNaN(name)== false){
             res.send({
-                // tinggal diatur mau seperti apa data ditampilkan
-                idNewUser : resp.insertedId,
-                dataUser: resp.ops[0]
+                "err_Message" : "Inputan anda salah" 
             })
-        })
+        }else{
+
+            //Create one user
+            //cara masukkan data ke dalam database mongodb
+            //sifatnya async
+            db.collection('users').insertOne({name, age})
+            .then((resp)=>{
+                res.send({
+                    // tinggal diatur mau seperti apa data ditampilkan
+                    idNewUser : resp.insertedId,
+                    dataUser: resp.ops[0]
+                })
+            }).catch((err)=>{
+                res.send(err)
+            })
+        }
     })
 
 
@@ -71,18 +85,26 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
     app.get('/findone', (req,res)=>{
         let age = parseInt(req.query.age)
 
-        //tidak usah pakai toArray()
-        db.collection('users').findOne({age : age})
-        .then((resp)=>{
-            if(resp.length == 0){
-                res.send({
-                    errMessage : "user tidak di temukan"
-                })
-            }else {
-            //hasil findOne dalam bentuk object dan hanya akan mencari satu data yang pertama kali ketemu
-            res.send(resp)
-            }
-        })
+        if(isNaN(age)== true){
+            res.send({
+                "err_Message" : "Inputan anda salah"
+            })
+        }else{
+            //tidak usah pakai toArray()
+            db.collection('users').findOne({age : age})
+            .then((resp)=>{
+                if(resp.length == 0){
+                    res.send({
+                        errMessage : "user tidak di temukan"
+                    })
+                }else {
+                //hasil findOne dalam bentuk object dan hanya akan mencari satu data yang pertama kali ketemu
+                res.send(resp)
+                }
+            }).catch((err)=>{
+                res.send(err)
+            })
+        }
     })
 
     //Get many data berdasarkan age
@@ -90,17 +112,30 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
     app.get('/find', (req,res)=>{
         let age = parseInt(req.query.age)
 
-        db.collection('users').find({age : age}).toArray()
-        .then((resp)=>{
-            if(resp.length == 0){
-                res.send({
-                    errMessage : "user tidak di temukan"
-                })
-            }else {
-            res.send(resp)
-            }
-        })
+        if(isNaN(age)== true){ //bisa juga pakai if(!isNaN(age)) pakai truthy falsy untuk menjalankan
+            res.send({
+                "err_Message" : "Inputan anda salah" 
+            })
+        }else{
+
+            db.collection('users').find({age : age}).toArray()
+            .then((resp)=>{
+                if(resp.length == 0){
+                    res.send({
+                        errMessage : "user tidak di temukan"
+                    })
+                }else {
+                res.send(resp)
+                }
+            }).catch((err)=>{
+                res.send(err)
+            })
+        }
     })
+
+    //////////////////////////
+    // LANJUTIN IF ELSE NYA!!!!!!!!//
+    ////////////////////////
 
     //GET ALL USERS
     app.get('/alluser', (req,res)=>{
@@ -108,13 +143,50 @@ MongoClient.connect(URL, {useNewUrlParser : true, useUnifiedTopology: true}, (er
         .then((resp)=>{
             res.send(resp)
         })
+        .catch((err)=>{
+            res.send(err)
+        })
     })
-    //DELETE BY AGE
+    //DELETE BY NAME
     app.delete('/user/:name', (req,res)=>{
         let name = req.params.name
+
+        name = name[0].toUpperCase() + name.slice(1) 
+
         db.collection('users').deleteOne({ name })
         .then((resp)=>{
             res.send(resp)
+        })
+        .catch((err)=>{
+            res.send(err)
+        })
+    })
+    //DELETE BY AGE
+    //kalau /user juga maka akan masuk ke dalam delete by name, sehingga hasil tidak ketemu, maka bedakan halamannya (kalau method dan link sama tidak boleh, tetapi kalau salah satu berbeda tidak masalah)
+    app.delete('/userage/:age', (req,res)=>{
+        let age = parseInt(req.params.age)
+        db.collection('users').deleteOne({ age })
+        .then((resp)=>{
+            res.send(resp)
+        }).catch((err)=>{
+            res.send(err)
+        })
+    })
+
+    //EDIT BY NAME
+    app.patch('/user/:name', (req,res)=>{
+        let name = req.params.name
+        let newName = req.body.newname
+
+        //coba d lowercase belakangnya?
+        name = name[0].toUpperCase() + name.slice(1)
+
+        db.collection('users').updateOne({ name },{$set: {name: newName}})
+        .then((resp)=>{
+            res.send(resp)
+        })
+        .catch((err)=>{
+            res.send(err)
         })
     })
 })
